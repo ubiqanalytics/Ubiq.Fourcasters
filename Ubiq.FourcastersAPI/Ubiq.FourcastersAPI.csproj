@@ -4,6 +4,10 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>Ubiq Analytics</Authors>
+    <PackageProjectUrl>https://github.com/ubiqanalytics/Ubiq.Fourcasters</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ubiqanalytics/Ubiq.Fourcasters</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
