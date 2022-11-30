@@ -1,0 +1,406 @@
+﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using SocketIOClient;
+using SocketIOClient.Transport;
+using System.Net.Http.Headers;
+using Ubiq.Definitions.Http;
+using Ubiq.Definitions.Market;
+using Ubiq.Extensions;
+
+namespace Ubiq.FourcastersAPI
+{
+    public class FourcastersAPI
+    {
+        private readonly ILogger<FourcastersAPI> m_Logger;
+        private readonly IHttpClientHelper m_HttpClientHelper;
+        private readonly HttpClient m_HttpClient;
+        private readonly string m_BaseUrl;
+        private readonly string m_Username;
+        private readonly string m_Password;
+        private readonly string m_Currency;
+        private readonly decimal m_CommissionRate;
+
+        private string m_Session;
+        private SocketIO m_UserSocket;
+        private SocketIO m_PublicSocket;
+        private PriceFormat m_PriceFormat = PriceFormat.American;
+
+        public event EventHandler UserWebSocketConnected;
+        public event EventHandler UserWebSocketDisconnected;
+        public event EventHandler PublicWebSocketConnected;
+        public event EventHandler PublicWebSocketDisconnected;
+
+        public event EventHandler<PositionUpdateMessage[]> PositionUpdated;
+        public event EventHandler<GameUpdateMessage[]> GamesUpdated;
+        public event EventHandler<OrderUpdateMessage[]> OrdersUpdated;
+
+        public FourcastersAPI(ILogger<FourcastersAPI> logger, IHttpClientHelper httpClientExtensions, HttpClient httpClient, Uri baseUri, string username, string password, string currency = "USD", decimal commissionRate = 1.0m)
+        {
+            m_Logger = logger;
+            m_HttpClientHelper = httpClientExtensions;
+            m_HttpClient = httpClient;
+            m_BaseUrl = baseUri.ToString();
+            m_Username = username;
+            m_Password = password;
+            m_Currency = currency;
+            m_CommissionRate = commissionRate;
+
+            httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue();
+            httpClient.DefaultRequestHeaders.CacheControl.MaxAge = TimeSpan.Zero;
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36");
+        }
+
+        public bool UsingWebSockets { get; private set; } = false;
+
+        public async Task<LoginResponse> Login(CancellationToken cancellation = default)
+        {
+            string loginUrl = $"{m_BaseUrl}user/login";
+
+            var loginRequest = new LoginRequest
+            {
+                username = m_Username,
+                password = m_Password,
+            };
+
+            LoginResponse loginResponse = await m_HttpClientHelper.PostAsync<LoginResponse, LoginRequest>(m_HttpClient, loginUrl, loginRequest, cancellation: cancellation).ConfigureAwait(false);
+            m_Session = loginResponse?.data?.user?.auth;
+
+            if (loginResponse?.data?.user?.oddsFormat != "american")
+            {
+                m_PriceFormat = PriceFormat.Decimal;
+            }
+
+            return loginResponse;
+        }
+
+        public async Task InitialiseWebSockets()
+        {
+            try
+            {
+                if (m_UserSocket != null)
+                {
+                    m_UserSocket.Dispose();
+                    m_UserSocket = null;
+                }
+                if (m_PublicSocket != null)
+                {
+                    m_PublicSocket.Dispose();
+                    m_PublicSocket = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                m_Logger.LogError(ex, "Error cleaning up websockets");
+            }
+
+            this.UsingWebSockets = true;
+
+            var options = new SocketIOOptions()
+            {
+                Reconnection = true,
+                Transport = TransportProtocol.WebSocket,
+                ExtraHeaders = new Dictionary<string, string>(),
+            };
+
+            options.ExtraHeaders.Add("authorization", m_Session);
+            string address = $"wss://socket-api-dot-fourcaster-bet.uc.r.appspot.com/v2/user/{m_Username}?auth={m_Session}";
+
+            m_UserSocket = new SocketIO(address, options);
+            m_UserSocket.OnAny(_UserSocketMessageReceived);
+
+            m_UserSocket.OnConnected += _UserSocket_OnConnected;
+            m_UserSocket.OnReconnected += _UserSocket_OnReconnected;
+            m_UserSocket.OnDisconnected += _UserSocket_OnDisconnected;
+            m_UserSocket.OnError += _UserSocket_OnError;
+
+            await m_UserSocket.ConnectAsync();
+
+            var publicOptions = new SocketIOOptions()
+            {
+                Reconnection = true,
+                Transport = TransportProtocol.WebSocket,
+                ExtraHeaders = new Dictionary<string, string>(),
+            };
+
+            publicOptions.ExtraHeaders.Add("authorization", m_Session);
+            string publicAddress = $"wss://socket-api-dot-fourcaster-bet.uc.r.appspot.com/priceUpdates";
+
+            m_PublicSocket = new SocketIO(publicAddress, publicOptions);
+            m_PublicSocket.OnAny(_PublicSocketMessageReceived);
+
+            m_PublicSocket.OnConnected += _PublicSocket_OnConnected;
+            m_PublicSocket.OnReconnected += _PublicSocket_OnReconnected;
+            m_PublicSocket.OnDisconnected += _PublicSocket_OnDisconnected;
+            m_PublicSocket.OnError += _PublicSocket_OnError;
+
+            await m_PublicSocket.ConnectAsync();
+        }
+
+        private void _UserSocket_OnError(object sender, string e)
+        {
+            m_Logger.LogError("UserSocketError: " + e);
+        }
+
+        private void _UserSocket_OnConnected(object sender, EventArgs e)
+        {
+            UserWebSocketConnected?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void _UserSocket_OnReconnected(object sender, int e)
+        {
+            UserWebSocketConnected?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void _UserSocket_OnDisconnected(object sender, string e)
+        {
+            m_Logger.LogDebug($"WebSocket disconnected because {e}");
+            UserWebSocketDisconnected?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void _PublicSocket_OnError(object sender, string e)
+        {
+            m_Logger.LogError("PublicSocketError: " + e);
+        }
+
+        private void _PublicSocket_OnConnected(object sender, EventArgs e)
+        {
+            PublicWebSocketConnected?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void _PublicSocket_OnReconnected(object sender, int e)
+        {
+            PublicWebSocketConnected?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void _PublicSocket_OnDisconnected(object sender, string e)
+        {
+            PublicWebSocketDisconnected?.Invoke(this, EventArgs.Empty);
+        }
+
+        private Dictionary<string, string> _CreateAuthHeader()
+        {
+            var headers = new Dictionary<string, string>
+            {
+                { "Authorization", m_Session }
+            };
+            return headers;
+        }
+
+        public async Task<ParticipantResponse> GetParticipants(CancellationToken cancellation = default)
+        {
+            string url = $"{m_BaseUrl}exchange/getParticipants";
+
+            ParticipantResponse response = await m_HttpClientHelper.GetAsync<ParticipantResponse>(m_HttpClient, url, additionalHeaders: _CreateAuthHeader(), requestName: "participants", cancellation: cancellation).ConfigureAwait(false);
+            return response;
+        }
+
+        public async Task<GamesResponse> GetGames(string league = "upcoming", CancellationToken cancellation = default)
+        {
+            string url = $"{m_BaseUrl}exchange/v2/getGames";
+
+            var request = new GamesRequest
+            {
+                token = m_Session,
+                leagueRequested = league,
+            };
+
+            GamesResponse response = await m_HttpClientHelper.PostAsync<GamesResponse, GamesRequest>(m_HttpClient, url, request, additionalHeaders: _CreateAuthHeader(), requestName: $"Games_{league}", cancellation: cancellation).ConfigureAwait(false);
+
+            if (response?.data?.games?.Length > 0)
+            {
+                response.data.games.ForEach(g => g.SetProperties(m_PriceFormat, m_Currency));
+            }
+
+            return response;
+        }
+
+        public async Task<OrderBookResponse> GetOrderBook(string league = "upcoming", CancellationToken cancellation = default)
+        {
+            string url = $"{m_BaseUrl}exchange/v2/getOrderbook";
+
+            var request = new OrderBookRequest
+            {
+                token = m_Session,
+                leagueRequested = league,
+            };
+
+            OrderBookResponse response = await m_HttpClientHelper.PostAsync<OrderBookResponse, OrderBookRequest>(m_HttpClient, url, request, additionalHeaders: _CreateAuthHeader(), requestName: $"OrderBook_{league}", cancellation: cancellation).ConfigureAwait(false);
+
+            if (response?.data?.games?.Length > 0)
+            {
+                response.data.games.ForEach(g => g.SetProperties(m_PriceFormat, m_Currency));
+            }
+
+            return response;
+        }
+
+        public async Task<MatchedBetsResponse> GetMatchedBets(CancellationToken cancellation = default)
+        {
+            string url = $"{m_BaseUrl}user/getMatchedBets";
+
+            MatchedBetsResponse response = await m_HttpClientHelper.GetAsync<MatchedBetsResponse>(m_HttpClient, url, additionalHeaders: _CreateAuthHeader(), requestName: $"MatchedBets", cancellation: cancellation).ConfigureAwait(false);
+
+            if (response?.data?.matchedBets?.Length > 0)
+            {
+                response.data.matchedBets.ForEach(m => m.SetProperties(m_PriceFormat, m_Currency, m_CommissionRate));
+            }
+
+            return response;
+        }
+
+        public async Task<UnmatchedBetsResponse> GetUnmatchedBets(CancellationToken cancellation = default)
+        {
+            string url = $"{m_BaseUrl}user/getUnmatched";
+
+            UnmatchedBetsResponse response = await m_HttpClientHelper.GetAsync<UnmatchedBetsResponse>(m_HttpClient, url, additionalHeaders: _CreateAuthHeader(), requestName: $"UnmatchedBets", cancellation: cancellation).ConfigureAwait(false);
+
+            if (response?.data?.unmatched?.Length > 0)
+            {
+                response.data.unmatched.ForEach(u => u.SetProperties(m_PriceFormat, m_Currency, m_CommissionRate));
+            }
+
+            return response;
+        }
+
+        public async Task<GradedWagersResponse> GetGradedWagers(DateTime startDate, DateTime endDate, CancellationToken cancellation = default)
+        {
+            string url = $"{m_BaseUrl}user/getGradedWagers?startDate={startDate:MM-dd-yyyy}&endDate={endDate:MM-dd-yyyy}";
+
+            GradedWagersResponse response = await m_HttpClientHelper.GetAsync<GradedWagersResponse>(m_HttpClient, url, additionalHeaders: _CreateAuthHeader(), requestName: $"GradedWagers", cancellation: cancellation).ConfigureAwait(false);
+
+            if (response?.data?.graded?.Length > 0)
+            {
+                response.data.graded.ForEach(g => g.SetProperties(m_PriceFormat, m_Currency, m_CommissionRate));
+            }
+
+            return response;
+        }
+
+        private void _UserSocketMessageReceived(string eventName, SocketIOResponse message)
+        {
+            m_Logger.LogDebug(message.ToString());
+
+            var positionUpdates = new List<PositionUpdateMessage>();
+
+            for (Int32 i = 0; i < message.Count; i++)
+            {
+                if (eventName == "positionUpdate")
+                {
+                    string positionUpdateMessageString = message.GetValue<string>(i);
+                    PositionUpdateMessage positionUpdateMessage = JsonConvert.DeserializeObject<PositionUpdateMessage>(positionUpdateMessageString);
+                    positionUpdateMessage.SetProperties(m_PriceFormat, m_Currency, m_CommissionRate);
+                    positionUpdates.Add(positionUpdateMessage);
+                }
+            }
+
+            if (positionUpdates.Count > 0)
+            {
+                PositionUpdated?.Invoke(this, positionUpdates.ToArray());
+            }
+        }
+
+        private void _PublicSocketMessageReceived(string eventName, SocketIOResponse message)
+        {
+            var gameUpdates = new List<GameUpdateMessage>();
+            var orderUpdates = new List<OrderUpdateMessage>();
+
+            for (Int32 i = 0; i < message.Count; i++)
+            {
+                if (eventName == "gameUpdate")
+                {
+                    string gameUpdateMessageString = message.GetValue<string>(i);
+                    m_Logger.LogDebug(gameUpdateMessageString);
+
+                    GameUpdateMessage gameUpdateMessage = JsonConvert.DeserializeObject<GameUpdateMessage>(gameUpdateMessageString);
+                    gameUpdates.Add(gameUpdateMessage);
+                }
+                if (eventName == "orderUpdate")
+                {
+                    string orderUpdateMessageString = message.GetValue<string>(i);
+                    OrderUpdateMessage orderUpdateMessage = JsonConvert.DeserializeObject<OrderUpdateMessage>(orderUpdateMessageString);
+                    orderUpdates.Add(orderUpdateMessage);
+                }
+            }
+
+            if (gameUpdates.Count > 0)
+            {
+                GamesUpdated?.Invoke(this, gameUpdates.ToArray());
+            }
+
+            if (orderUpdates.Count > 0)
+            {
+                OrdersUpdated?.Invoke(this, orderUpdates.ToArray());
+            }
+        }
+
+        public async Task<PlaceResponse> Place(IEnumerable<PlaceOrder> orders, CancellationToken cancellation = default)
+        {
+            string url = $"{m_BaseUrl}session/v2/place";
+
+            var request = new PlaceRequest
+            {
+                token = m_Session,
+                orders = orders.ToArray(),
+            };
+
+            PlaceResponse response = await m_HttpClientHelper.PostAsync<PlaceResponse, PlaceRequest>(m_HttpClient, url, request, additionalHeaders: _CreateAuthHeader(), requestName: $"PlaceOrders", cancellation: cancellation).ConfigureAwait(false);
+            response?.SetProperties(m_PriceFormat, m_Currency, m_CommissionRate);
+            return response;
+        }
+
+        public async Task<CancelAllOrdersResponse> CancelAllOrders(CancellationToken cancellation = default)
+        {
+            string url = $"{m_BaseUrl}session/cancelAllOrders";
+
+            var request = new CancelAllOrdersRequest
+            {
+                token = m_Session,
+            };
+
+            CancelAllOrdersResponse response = await m_HttpClientHelper.PostAsync<CancelAllOrdersResponse, CancelAllOrdersRequest>(m_HttpClient, url, request, additionalHeaders: _CreateAuthHeader(), requestName: $"CancelAllOrders", cancellation: cancellation).ConfigureAwait(false);
+            return response;
+        }
+
+        public async Task<CancelResponse> Cancel(string sessionId, CancellationToken cancellation = default)
+        {
+            string url = $"{m_BaseUrl}session/cancel";
+
+            var request = new CancelRequest
+            {
+                token = m_Session,
+                sessionID = sessionId,
+            };
+
+            CancelResponse response = await m_HttpClientHelper.PostAsync<CancelResponse, CancelRequest>(m_HttpClient, url, request, additionalHeaders: _CreateAuthHeader(), requestName: $"Cancel", cancellation: cancellation).ConfigureAwait(false);
+            return response;
+        }
+
+        public async Task<CancelMultipleResponse> CancelMultiple(IEnumerable<string> sessionIds, CancellationToken cancellation = default)
+        {
+            string url = $"{m_BaseUrl}session/cancelMultiple";
+
+            var request = new CancelMultipleRequest
+            {
+                token = m_Session,
+                sessionIDs = sessionIds.ToArray(),
+            };
+
+            CancelMultipleResponse response = await m_HttpClientHelper.PostAsync<CancelMultipleResponse, CancelMultipleRequest>(m_HttpClient, url, request, additionalHeaders: _CreateAuthHeader(), requestName: $"CancelMultiple", cancellation: cancellation).ConfigureAwait(false);
+            return response;
+        }
+
+        //public async Task<EditOrderResponse> EditOrder(Int32 stakeUSD, string gameId, Price price, CancellationToken cancellation = default)
+        //{
+        //    string url = $"{m_BaseUrl}session/editOrder";
+
+        //    var request = new EditOrderRequest
+        //    {
+        //        token = m_Session,
+        //    };
+
+        //    EditOrderResponse response = await m_HttpClientHelper.PostAsync<EditOrderResponse, EditOrderRequest>(m_HttpClient, url, request, cancellation: cancellation).ConfigureAwait(false);
+        //    return response;
+        //}
+    }
+}
