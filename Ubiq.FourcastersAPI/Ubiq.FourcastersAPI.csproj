@@ -11,6 +11,7 @@
     <Title>Ubiq.4castersAPI</Title>
     <PackageId>Ubiq.4castersAPI</PackageId>
     <Product>Ubiq.4castersAPI</Product>
+    <Description>A .NET wrapper library for the 4casters.io exchange API</Description>
   </PropertyGroup>
 
   <ItemGroup>
