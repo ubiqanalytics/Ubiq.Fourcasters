@@ -8,6 +8,9 @@
     <Authors>Ubiq Analytics</Authors>
     <PackageProjectUrl>https://github.com/ubiqanalytics/Ubiq.Fourcasters</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ubiqanalytics/Ubiq.Fourcasters</RepositoryUrl>
+    <Title>Ubiq.4casters</Title>
+    <PackageId>Ubiq.4casters</PackageId>
+    <Product>Ubiq.4casters</Product>
   </PropertyGroup>
 
   <ItemGroup>
