@@ -38,4 +38,4 @@ jobs:
       run: dotnet test /p:Configuration=Release --no-restore --no-build --verbosity normal
 
     - name: publish package Fourcasters
-      run: dotnet nuget push "Ubiq.FourcastersAPI/bin/Release/Ubiq.FourcastersAPI.${{ env.VERSION_PREFIX }}.nupkg" --api-key ${{secrets.NUGET_API_KEY}} --source "https://api.nuget.org/v3/index.json"
+      run: dotnet nuget push "Ubiq.FourcastersAPI/bin/Release/Ubiq.4castersAPI.${{ env.VERSION_PREFIX }}.nupkg" --api-key ${{secrets.NUGET_API_KEY}} --source "https://api.nuget.org/v3/index.json"
