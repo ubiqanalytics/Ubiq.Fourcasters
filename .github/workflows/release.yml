@@ -13,7 +13,7 @@ jobs:
 
     env:
       SOLUTION: 'Ubiq.Fourcasters.sln'
-      VERSION_PREFIX: '1.0.3'
+      VERSION_PREFIX: '1.0.4'
  
     runs-on: windows-latest
 
@@ -29,9 +29,7 @@ jobs:
         dotnet-version: 7.0.x
 
     - name: Restore dependencies
-      run:  |
-            dotnet nuget add source "https://nuget.pkg.github.com/UbiqAnalytics/index.json" --name "github" --username "ubiqbuild" --password "${{ secrets.ACCESS_TOKEN }}" --store-password-in-clear-text
-            dotnet restore $SOLUTION
+      run:  dotnet restore $SOLUTION
 
     - name: Build
       run: dotnet build $SOLUTION --configuration Release --no-restore /p:VersionPrefix=${{ env.VERSION_PREFIX }}
@@ -40,4 +38,4 @@ jobs:
       run: dotnet test /p:Configuration=Release --no-restore --no-build --verbosity normal
 
     - name: publish package Fourcasters
-      run: dotnet nuget push "Ubiq.FourcastersAPI/bin/Release/Ubiq.FourcastersAPI.${{ env.VERSION_PREFIX }}.nupkg" --api-key ${{ secrets.ACCESS_TOKEN }} --source "github"
+      run: dotnet nuget push "Ubiq.FourcastersAPI/bin/Release/Ubiq.FourcastersAPI.${{ env.VERSION_PREFIX }}.nupkg" --api-key ${{secrets.NUGET_API_KEY}} --source "https://api.nuget.org/v3/index.json"
