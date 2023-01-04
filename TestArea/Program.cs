@@ -7,8 +7,8 @@ using Ubiq.Http;
 HttpClient httpClient = HttpUtil.CreateHttpClient(false, false, false);
 var httpClientHelper = new HttpClientHelper(NullLogger<HttpClientHelper>.Instance, new JsonSerializerSettings().Configure());
 
-string username = "supernovatest";
-string password = "test469";
+string username = "your username";
+string password = "your password";
 
 var fourcasters = new FourcastersAPI(NullLogger<FourcastersAPI>.Instance, httpClientHelper, httpClient, new Uri("https://api.4casters.io/"), username, password, "USD", 1.0m);
 
