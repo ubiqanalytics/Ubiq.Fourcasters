@@ -497,6 +497,7 @@ namespace Ubiq.FourcastersAPI
 
     public class PlacedSession
     {
+        public string error { get; set; }
         public PlacedMatched[] matched { get; set; }
         public PlacedUnmatched unmatched { get; set; }
     }
