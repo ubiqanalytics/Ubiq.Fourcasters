@@ -454,6 +454,7 @@ namespace Ubiq.FourcastersAPI
         public string type { get; set; }
         public decimal? number { get; set; }
         public string side { get; set; }
+        public string userReference { get; set; }
 
         public override string ToString()
         {
@@ -600,6 +601,7 @@ namespace Ubiq.FourcastersAPI
         public string sport { get; set; }
         public string platform { get; set; }
         public string origin { get; set; }
+        public string userReference { get; set; }
 
         public Matched matched { get; set; }
         public Unmatched unmatched { get; set; }
