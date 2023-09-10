@@ -100,6 +100,7 @@ namespace Ubiq.FourcastersAPI
         public DateTime start { get; set; }
         public bool ended { get; set; }
         public bool featured { get; set; }
+        public bool live { get; set; }
         public GameParticipant[] participants { get; set; }
         public Order[] awayMoneylines { get; set; }
         public Order[] homeMoneylines { get; set; }
