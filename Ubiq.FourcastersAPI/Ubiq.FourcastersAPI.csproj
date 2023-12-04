@@ -17,7 +17,7 @@
   <ItemGroup>
     <PackageReference Include="SocketIOClient" Version="3.0.8" />
     <PackageReference Include="Ubiq.Definitions.Market" Version="1.0.19" />
-    <PackageReference Include="Ubiq.Http" Version="1.0.15" />
+    <PackageReference Include="Ubiq.Http" Version="1.0.17" />
   </ItemGroup>
 
 </Project>
