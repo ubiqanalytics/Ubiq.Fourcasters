@@ -106,7 +106,7 @@ namespace Ubiq.FourcastersAPI
             };
 
             options.ExtraHeaders.Add("authorization", m_Session);
-            string address = $"{m_SocketUri}v2/user/{m_Username}?auth={m_Session}";
+            string address = $"{m_SocketUri}v2/user/{m_Username}";
 
             m_UserSocket = new SocketIO(address, options);
             m_UserSocket.OnAny(_UserSocketMessageReceived);
