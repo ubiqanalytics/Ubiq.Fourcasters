@@ -10,7 +10,7 @@ var httpClientHelper = new HttpClientHelper(NullLogger<HttpClientHelper>.Instanc
 string username = "your username";
 string password = "your password";
 
-var fourcasters = new FourcastersAPI(NullLogger<FourcastersAPI>.Instance, httpClientHelper, httpClient, new Uri("https://api.4casters.io/"), username, password, "USD", 1.0m);
+var fourcasters = new FourcastersAPI(NullLogger<FourcastersAPI>.Instance, httpClientHelper, httpClient, new Uri("https://api.4casters.io/"), new Uri("wss://socket-api.4casters.io"), username, password, "USD", 1.0m);
 
 fourcasters.OrdersUpdated += Fourcasters_OrdersUpdated;
 fourcasters.PositionUpdated += Fourcasters_PositionUpdated;

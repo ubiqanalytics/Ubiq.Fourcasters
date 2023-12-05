@@ -14,6 +14,7 @@ namespace Ubiq.FourcastersAPI
         private readonly ILogger<FourcastersAPI> m_Logger;
         private readonly IHttpClientHelper m_HttpClientHelper;
         private readonly HttpClient m_HttpClient;
+        private readonly Uri m_SocketUri;
         private readonly string m_BaseUrl;
         private readonly string m_Username;
         private readonly string m_Password;
@@ -34,11 +35,12 @@ namespace Ubiq.FourcastersAPI
         public event EventHandler<GameUpdateMessage[]> GamesUpdated;
         public event EventHandler<OrderUpdateMessage[]> OrdersUpdated;
 
-        public FourcastersAPI(ILogger<FourcastersAPI> logger, IHttpClientHelper httpClientExtensions, HttpClient httpClient, Uri baseUri, string username, string password, string currency = "USD", decimal commissionRate = 1.0m)
+        public FourcastersAPI(ILogger<FourcastersAPI> logger, IHttpClientHelper httpClientExtensions, HttpClient httpClient, Uri baseUri, Uri socketUri, string username, string password, string currency = "USD", decimal commissionRate = 1.0m)
         {
             m_Logger = logger;
             m_HttpClientHelper = httpClientExtensions;
             m_HttpClient = httpClient;
+            m_SocketUri = socketUri;
             m_BaseUrl = baseUri.ToString();
             m_Username = username;
             m_Password = password;
@@ -104,7 +106,7 @@ namespace Ubiq.FourcastersAPI
             };
 
             options.ExtraHeaders.Add("authorization", m_Session);
-            string address = $"wss://socket-api-dot-fourcaster-bet.uc.r.appspot.com/v2/user/{m_Username}?auth={m_Session}";
+            string address = $"{m_SocketUri}v2/user/{m_Username}?auth={m_Session}";
 
             m_UserSocket = new SocketIO(address, options);
             m_UserSocket.OnAny(_UserSocketMessageReceived);
@@ -124,7 +126,7 @@ namespace Ubiq.FourcastersAPI
             };
 
             publicOptions.ExtraHeaders.Add("authorization", m_Session);
-            string publicAddress = $"wss://socket-api-dot-fourcaster-bet.uc.r.appspot.com/priceUpdates";
+            string publicAddress = $"{m_SocketUri}priceUpdates";
 
             m_PublicSocket = new SocketIO(publicAddress, publicOptions);
             m_PublicSocket.OnAny(_PublicSocketMessageReceived);
