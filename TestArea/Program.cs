@@ -7,20 +7,20 @@ using Ubiq.Http;
 HttpClient httpClient = HttpUtil.CreateHttpClient(false, false, false);
 var httpClientHelper = new HttpClientHelper(NullLogger<HttpClientHelper>.Instance, new JsonSerializerSettings().Configure());
 
-string username = "your username";
-string password = "your password";
+string username = "";
+string password = "";
 
 var fourcasters = new FourcastersAPI(NullLogger<FourcastersAPI>.Instance, httpClientHelper, httpClient, new Uri("https://api.4casters.io/"), new Uri("wss://socket-api.4casters.io"), username, password, "USD", 1.0m);
 
-fourcasters.OrdersUpdated += Fourcasters_OrdersUpdated;
+fourcasters.OrderUpdated += Fourcasters_OrdersUpdated;
 fourcasters.PositionUpdated += Fourcasters_PositionUpdated;
 
-void Fourcasters_PositionUpdated(object sender, PositionUpdateMessage[] e)
+void Fourcasters_PositionUpdated(object sender, PositionUpdateMessage e)
 {
     Console.WriteLine(JsonConvert.SerializeObject(e, Formatting.Indented));
 }
 
-void Fourcasters_OrdersUpdated(object sender, OrderUpdateMessage[] e)
+void Fourcasters_OrdersUpdated(object sender, OrderUpdateMessage e)
 {
     Console.WriteLine(JsonConvert.SerializeObject(e, Formatting.Indented));
 }

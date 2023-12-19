@@ -283,10 +283,9 @@ namespace Ubiq.FourcastersAPI
     public class OrderUpdateMessage
     {
         public string gameID { get; set; }
+        public string sport { get; set; }
         public string type { get; set; }
-        public string OU { get; set; }
-        public decimal? total { get; set; }
-        public decimal? spread { get; set; }
+        public bool live { get; set; }
         public Sideorder[] sideOrders { get; set; }
         public string participantID { get; set; }
     }
@@ -311,6 +310,7 @@ namespace Ubiq.FourcastersAPI
         public int? level { get; set; }
         public DateTime? expiry { get; set; }
         public DateTime createdAt { get; set; }
+        public bool gameStartExpiry { get; set; }
     }
 
     public interface IBet
@@ -602,6 +602,9 @@ namespace Ubiq.FourcastersAPI
         public string sport { get; set; }
         public string platform { get; set; }
         public string origin { get; set; }
+        public string awayRotationNumber { get; set; }
+        public bool live { get; set; }
+        public DateTime start { get; set; }
 
         public Matched matched { get; set; }
         public Unmatched unmatched { get; set; }
@@ -718,6 +721,7 @@ namespace Ubiq.FourcastersAPI
         public string side { get; set; }
         public decimal? number { get; set; }
         public string userReference { get; set; }
+        public string wagerRequestID { get; set; }
 
         public Price Price { get; private set; }
         public Amount Filled { get; private set; }

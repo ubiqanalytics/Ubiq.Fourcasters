@@ -22,8 +22,8 @@ namespace Ubiq.FourcastersAPI
         private readonly decimal m_CommissionRate;
 
         private string m_Session;
-        private SocketIO m_UserSocket;
-        private SocketIO m_PublicSocket;
+        private SocketIOClient.SocketIO m_UserSocket;
+        private SocketIOClient.SocketIO m_PublicSocket;
         private PriceFormat m_PriceFormat = PriceFormat.American;
 
         public event EventHandler UserWebSocketConnected;
@@ -31,9 +31,9 @@ namespace Ubiq.FourcastersAPI
         public event EventHandler PublicWebSocketConnected;
         public event EventHandler PublicWebSocketDisconnected;
 
-        public event EventHandler<PositionUpdateMessage[]> PositionUpdated;
-        public event EventHandler<GameUpdateMessage[]> GamesUpdated;
-        public event EventHandler<OrderUpdateMessage[]> OrdersUpdated;
+        public event EventHandler<PositionUpdateMessage> PositionUpdated;
+        public event EventHandler<GameUpdateMessage> GameUpdated;
+        public event EventHandler<OrderUpdateMessage> OrderUpdated;
 
         public FourcastersAPI(ILogger<FourcastersAPI> logger, IHttpClientHelper httpClientExtensions, HttpClient httpClient, Uri baseUri, Uri socketUri, string username, string password, string currency = "USD", decimal commissionRate = 1.0m)
         {
@@ -108,7 +108,7 @@ namespace Ubiq.FourcastersAPI
             options.ExtraHeaders.Add("authorization", m_Session);
             string address = $"{m_SocketUri}v2/user/{m_Username}";
 
-            m_UserSocket = new SocketIO(address, options);
+            m_UserSocket = new SocketIOClient.SocketIO(address, options);
             m_UserSocket.OnAny(_UserSocketMessageReceived);
 
             m_UserSocket.OnConnected += _UserSocket_OnConnected;
@@ -128,7 +128,7 @@ namespace Ubiq.FourcastersAPI
             publicOptions.ExtraHeaders.Add("authorization", m_Session);
             string publicAddress = $"{m_SocketUri}priceUpdates";
 
-            m_PublicSocket = new SocketIO(publicAddress, publicOptions);
+            m_PublicSocket = new SocketIOClient.SocketIO(publicAddress, publicOptions);
             m_PublicSocket.OnAny(_PublicSocketMessageReceived);
 
             m_PublicSocket.OnConnected += _PublicSocket_OnConnected;
@@ -281,58 +281,33 @@ namespace Ubiq.FourcastersAPI
 
         private void _UserSocketMessageReceived(string eventName, SocketIOResponse message)
         {
-            m_Logger.LogDebug(message.ToString());
+            string data = message.GetValue<string>();
+            m_Logger.LogDebug(data);
 
-            var positionUpdates = new List<PositionUpdateMessage>();
-
-            for (Int32 i = 0; i < message.Count; i++)
+            if (eventName == "positionUpdate")
             {
-                if (eventName == "positionUpdate")
-                {
-                    string positionUpdateMessageString = message.GetValue<string>(i);
-                    PositionUpdateMessage positionUpdateMessage = JsonConvert.DeserializeObject<PositionUpdateMessage>(positionUpdateMessageString);
-                    positionUpdateMessage.SetProperties(m_PriceFormat, m_Currency, m_CommissionRate);
-                    positionUpdates.Add(positionUpdateMessage);
-                }
-            }
-
-            if (positionUpdates.Count > 0)
-            {
-                PositionUpdated?.Invoke(this, positionUpdates.ToArray());
+                PositionUpdateMessage positionUpdateMessage = JsonConvert.DeserializeObject<PositionUpdateMessage>(data);
+                positionUpdateMessage.SetProperties(m_PriceFormat, m_Currency, m_CommissionRate);
+                PositionUpdated?.Invoke(this, positionUpdateMessage);
             }
         }
 
         private void _PublicSocketMessageReceived(string eventName, SocketIOResponse message)
         {
-            var gameUpdates = new List<GameUpdateMessage>();
-            var orderUpdates = new List<OrderUpdateMessage>();
+            string data = message.GetValue<string>();
+            m_Logger.LogDebug(data);
 
-            for (Int32 i = 0; i < message.Count; i++)
+            if (eventName == "gameUpdate")
             {
-                if (eventName == "gameUpdate")
-                {
-                    string gameUpdateMessageString = message.GetValue<string>(i);
-                    m_Logger.LogDebug(gameUpdateMessageString);
-
-                    GameUpdateMessage gameUpdateMessage = JsonConvert.DeserializeObject<GameUpdateMessage>(gameUpdateMessageString);
-                    gameUpdates.Add(gameUpdateMessage);
-                }
-                if (eventName == "orderUpdate")
-                {
-                    string orderUpdateMessageString = message.GetValue<string>(i);
-                    OrderUpdateMessage orderUpdateMessage = JsonConvert.DeserializeObject<OrderUpdateMessage>(orderUpdateMessageString);
-                    orderUpdates.Add(orderUpdateMessage);
-                }
+                GameUpdateMessage gameUpdateMessage = JsonConvert.DeserializeObject<GameUpdateMessage>(data);
+                GameUpdated?.Invoke(this, gameUpdateMessage);
+                return;
             }
-
-            if (gameUpdates.Count > 0)
+            if (eventName == "orderUpdate")
             {
-                GamesUpdated?.Invoke(this, gameUpdates.ToArray());
-            }
-
-            if (orderUpdates.Count > 0)
-            {
-                OrdersUpdated?.Invoke(this, orderUpdates.ToArray());
+                OrderUpdateMessage orderUpdateMessage = JsonConvert.DeserializeObject<OrderUpdateMessage>(data);
+                OrderUpdated?.Invoke(this, orderUpdateMessage);
+                return;
             }
         }
 
