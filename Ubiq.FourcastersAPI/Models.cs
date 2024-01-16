@@ -516,6 +516,12 @@ namespace Ubiq.FourcastersAPI
         public decimal risk { get; set; }
         public decimal win { get; set; }
         public decimal odds { get; set; }
+        public decimal amount { get; set; }
+        public string type { get; set; }
+        public int? number { get; set; }
+        public string side { get; set; }
+        public string wagerRequestID { get; set; }
+        public string userReference { get; set; }
 
         public Price Price { get; private set; }
         public Amount Risk { get; private set; }
@@ -576,6 +582,12 @@ namespace Ubiq.FourcastersAPI
     {
         public string orderID { get; set; }
         public decimal offered { get; set; }
+        public int odds { get; set; }
+        public string type { get; set; }
+        public int? number { get; set; }
+        public string side { get; set; }
+        public string wagerRequestID { get; set; }
+        public string userReference { get; set; }
 
         public string OfferId
         {
