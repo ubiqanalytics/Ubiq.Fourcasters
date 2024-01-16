@@ -295,10 +295,11 @@ namespace Ubiq.FourcastersAPI
         private void _PublicSocketMessageReceived(string eventName, SocketIOResponse message)
         {
             string data = message.GetValue<string>();
-            m_Logger.LogDebug(data);
 
             if (eventName == "gameUpdate")
             {
+                m_Logger.LogDebug(data);
+
                 GameUpdateMessage gameUpdateMessage = JsonConvert.DeserializeObject<GameUpdateMessage>(data);
                 GameUpdated?.Invoke(this, gameUpdateMessage);
                 return;
