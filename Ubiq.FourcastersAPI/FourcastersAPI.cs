@@ -204,7 +204,7 @@ namespace Ubiq.FourcastersAPI
             var request = new GamesRequest
             {
                 token = m_Session,
-                leagueRequested = league,
+                league = league,
             };
 
             GamesResponse response = await m_HttpClientHelper.PostAsync<GamesResponse, GamesRequest>(m_HttpClient, url, request, additionalHeaders: _CreateAuthHeader(), requestName: $"Games_{league}", cancellation: cancellation).ConfigureAwait(false);
@@ -224,7 +224,7 @@ namespace Ubiq.FourcastersAPI
             var request = new OrderBookRequest
             {
                 token = m_Session,
-                leagueRequested = league,
+                league = league,
             };
 
             OrderBookResponse response = await m_HttpClientHelper.PostAsync<OrderBookResponse, OrderBookRequest>(m_HttpClient, url, request, additionalHeaders: _CreateAuthHeader(), requestName: $"OrderBook_{league}", cancellation: cancellation).ConfigureAwait(false);

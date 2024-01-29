@@ -74,7 +74,7 @@ namespace Ubiq.FourcastersAPI
 
     public class GamesRequest : AuthenticatedRequest
     {
-        public string leagueRequested { get; set; }
+        public string league { get; set; }
     }
 
     public class GamesResponse
@@ -160,7 +160,7 @@ namespace Ubiq.FourcastersAPI
 
     public class OrderBookRequest : AuthenticatedRequest
     {
-        public string leagueRequested { get; set; }
+        public string league { get; set; }
     }
 
     public class OrderBookResponse
