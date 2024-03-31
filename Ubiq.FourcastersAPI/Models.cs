@@ -362,6 +362,7 @@ namespace Ubiq.FourcastersAPI
         public string result { get; set; }
         public DateTime? settledAt { get; set; }
         public string platform { get; set; }
+        public string userReference { get; set; }
         //public Pinnacleline latestPinnacleLine { get; set; }
         //public Pinnacleline pinnacleLine { get; set; }
 
