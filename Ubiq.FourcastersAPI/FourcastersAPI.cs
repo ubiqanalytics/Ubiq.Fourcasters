@@ -55,6 +55,30 @@ namespace Ubiq.FourcastersAPI
 
         public bool UsingWebSockets { get; private set; } = false;
 
+        public string Currency
+        {
+            get
+            {
+                return m_Currency;
+            }
+        }
+
+        public PriceFormat PriceFormat
+        {
+            get
+            {
+                return m_PriceFormat;
+            }
+        }
+
+        public decimal CommissionRate
+        {
+            get
+            {
+                return m_CommissionRate;
+            }
+        }
+
         public async Task<LoginResponse> Login(CancellationToken cancellation = default)
         {
             string loginUrl = $"{m_BaseUrl}user/login";
