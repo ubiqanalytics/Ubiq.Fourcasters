@@ -150,6 +150,7 @@ namespace Ubiq.FourcastersAPI
         public string league { get; set; }
         public string sport { get; set; }
         public DateTime start { get; set; }
+        public bool live { get; set; }
         public bool ended { get; set; }
         public GameParticipant[] participants { get; set; }
         public string eventName { get; set; }
