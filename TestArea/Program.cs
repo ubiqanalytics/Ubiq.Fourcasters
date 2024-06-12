@@ -28,12 +28,14 @@ void Fourcasters_OrdersUpdated(object sender, OrderUpdateMessage e)
 await fourcasters.Login();
 await fourcasters.InitialiseWebSockets();
 
+var leagues = await fourcasters.GetLeagues();
+
 CancelAllOrdersResponse cancelAllResponse = await fourcasters.CancelAllOrders();
 
 GamesResponse games = await fourcasters.GetGames("NHL");
 Game game = games.data.games.First();
 
-PlaceResponse placeResponse = await fourcasters.Place(new[] { new PlaceOrder()
+PlaceResponse placeResponse = await fourcasters.Place([new PlaceOrder
     {
         gameID = game.id,
         odds = +500m,
@@ -41,7 +43,7 @@ PlaceResponse placeResponse = await fourcasters.Place(new[] { new PlaceOrder()
         side = game.participants.First().id,
         type = "moneyline",
     }
-});
+]);
 
 CancelResponse cancelResponse = await fourcasters.Cancel(placeResponse.data.createdSessions.First().unmatched.OfferId);
 

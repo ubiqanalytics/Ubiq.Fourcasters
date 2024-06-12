@@ -216,22 +216,25 @@ namespace Ubiq.FourcastersAPI
         public async Task<ParticipantResponse> GetParticipants(CancellationToken cancellation = default)
         {
             string url = $"{m_BaseUrl}exchange/getParticipants";
-
-            ParticipantResponse response = await m_HttpClientHelper.GetAsync<ParticipantResponse>(m_HttpClient, url, additionalHeaders: _CreateAuthHeader(), requestName: "participants", cancellation: cancellation).ConfigureAwait(false);
-            return response;
+            return await m_HttpClientHelper.GetAsync<ParticipantResponse>(m_HttpClient, url, additionalHeaders: _CreateAuthHeader(), requestName: "Participants", cancellation: cancellation).ConfigureAwait(false);
         }
 
-        public async Task<GamesResponse> GetGames(string league = "upcoming", CancellationToken cancellation = default)
+        public async Task<LeaguesResponse> GetLeagues(CancellationToken cancellation = default)
         {
-            string url = $"{m_BaseUrl}exchange/v2/getGames";
+            string url = $"{m_BaseUrl}exchange/getLeagues";
+            return await m_HttpClientHelper.GetAsync<LeaguesResponse>(m_HttpClient, url, additionalHeaders: _CreateAuthHeader(), requestName: "Leagues", cancellation: cancellation).ConfigureAwait(false);
+        }
 
-            var request = new GamesRequest
+        public async Task<GamesResponse> GetGames(string league = "upcoming", string sport = null, CancellationToken cancellation = default)
+        {
+            string url = $"{m_BaseUrl}exchange/v2/getGames?league={league}";
+
+            if (string.IsNullOrWhiteSpace(sport) == false)
             {
-                token = m_Session,
-                league = league,
-            };
+                url += $"&sport={sport}";
+            }
 
-            GamesResponse response = await m_HttpClientHelper.PostAsync<GamesResponse, GamesRequest>(m_HttpClient, url, request, additionalHeaders: _CreateAuthHeader(), requestName: $"Games_{league}", cancellation: cancellation).ConfigureAwait(false);
+            GamesResponse response = await m_HttpClientHelper.GetAsync<GamesResponse>(m_HttpClient, url, additionalHeaders: _CreateAuthHeader(), requestName: $"Games_{league}", cancellation: cancellation).ConfigureAwait(false);
 
             if (response?.data?.games?.Length > 0)
             {

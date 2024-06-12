@@ -72,9 +72,20 @@ namespace Ubiq.FourcastersAPI
         public string sport { get; set; }
     }
 
+    public class LeaguesResponse
+    {
+        public LeaguesData data { get; set; }
+    }
+
+    public class LeaguesData
+    {
+        public string[] availableLeagues { get; set; }
+    }
+
     public class GamesRequest : AuthenticatedRequest
     {
         public string league { get; set; }
+        public string sport { get; set; }
     }
 
     public class GamesResponse
@@ -91,6 +102,8 @@ namespace Ubiq.FourcastersAPI
     {
         public bool isFutures { get; set; }
         public string eventName { get; set; }
+        public string periodName { get; set; }
+        public string tournamentName { get; set; }
         public string futuresTeam { get; set; }
         public string id { get; set; }
         public string parentGameID { get; set; }
