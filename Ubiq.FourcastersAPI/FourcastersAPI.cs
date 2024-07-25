@@ -296,7 +296,7 @@ namespace Ubiq.FourcastersAPI
         {
             string url = $"{m_BaseUrl}user/getGradedWagers?startDate={startDate:MM-dd-yyyy}&endDate={endDate:MM-dd-yyyy}";
 
-            GradedWagersResponse response = await m_HttpClientHelper.GetAsync<GradedWagersResponse>(m_HttpClient, url, additionalHeaders: _CreateAuthHeader(), requestName: $"GradedWagers", cancellation: cancellation).ConfigureAwait(false);
+            GradedWagersResponse response = await m_HttpClientHelper.GetAsync<GradedWagersResponse>(m_HttpClient, url, additionalHeaders: _CreateAuthHeader(), requestName: $"GradedWagers_{startDate:MM-dd-yyyy}_{endDate:MM-dd-yyyy}", cancellation: cancellation).ConfigureAwait(false);
 
             if (response?.data?.graded?.Length > 0)
             {
