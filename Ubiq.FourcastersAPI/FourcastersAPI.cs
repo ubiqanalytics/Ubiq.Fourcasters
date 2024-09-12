@@ -9,7 +9,7 @@ using Ubiq.Extensions;
 
 namespace Ubiq.FourcastersAPI
 {
-    public class FourcastersAPI
+    public class FourcastersAPI : IDisposable
     {
         private readonly ILogger<FourcastersAPI> m_Logger;
         private readonly IHttpClientHelper m_HttpClientHelper;
@@ -100,17 +100,27 @@ namespace Ubiq.FourcastersAPI
             return loginResponse;
         }
 
-        public async Task InitialiseWebSockets()
+        private void _KillSockets()
         {
             try
             {
-                if (m_UserSocket != null)
+                if (m_UserSocket is object)
                 {
+                    m_UserSocket.OnConnected -= _UserSocket_OnConnected;
+                    m_UserSocket.OnReconnected -= _UserSocket_OnReconnected;
+                    m_UserSocket.OnDisconnected -= _UserSocket_OnDisconnected;
+                    m_UserSocket.OnError -= _UserSocket_OnError;
+
                     m_UserSocket.Dispose();
                     m_UserSocket = null;
                 }
-                if (m_PublicSocket != null)
+                if (m_PublicSocket is object)
                 {
+                    m_PublicSocket.OnConnected -= _UserSocket_OnConnected;
+                    m_PublicSocket.OnReconnected -= _UserSocket_OnReconnected;
+                    m_PublicSocket.OnDisconnected -= _UserSocket_OnDisconnected;
+                    m_PublicSocket.OnError -= _UserSocket_OnError;
+
                     m_PublicSocket.Dispose();
                     m_PublicSocket = null;
                 }
@@ -119,6 +129,11 @@ namespace Ubiq.FourcastersAPI
             {
                 m_Logger.LogError(ex, "Error cleaning up websockets");
             }
+        }
+
+        public async Task InitialiseWebSockets()
+        {
+            _KillSockets();
 
             this.UsingWebSockets = true;
 
@@ -126,7 +141,7 @@ namespace Ubiq.FourcastersAPI
             {
                 Reconnection = true,
                 Transport = TransportProtocol.WebSocket,
-                ExtraHeaders = new Dictionary<string, string>(),
+                ExtraHeaders = new(),
             };
 
             options.ExtraHeaders.Add("authorization", m_Session);
@@ -146,7 +161,7 @@ namespace Ubiq.FourcastersAPI
             {
                 Reconnection = true,
                 Transport = TransportProtocol.WebSocket,
-                ExtraHeaders = new Dictionary<string, string>(),
+                ExtraHeaders = new(),
             };
 
             publicOptions.ExtraHeaders.Add("authorization", m_Session);
@@ -161,6 +176,11 @@ namespace Ubiq.FourcastersAPI
             m_PublicSocket.OnError += _PublicSocket_OnError;
 
             await m_PublicSocket.ConnectAsync();
+        }
+
+        public void Dispose()
+        {
+            _KillSockets();
         }
 
         private void _UserSocket_OnError(object sender, string e)
