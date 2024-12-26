@@ -13,7 +13,7 @@ jobs:
 
     env:
       SOLUTION: 'Ubiq.Fourcasters.sln'
-      VERSION_PREFIX: '3.0.2'
+      VERSION_PREFIX: '4.0.1'
  
     runs-on: windows-latest
 

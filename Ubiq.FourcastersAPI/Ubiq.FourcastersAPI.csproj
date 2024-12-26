@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -16,8 +16,8 @@
 
   <ItemGroup>
     <PackageReference Include="SocketIOClient" Version="3.1.2" />
-    <PackageReference Include="Ubiq.Definitions.Market" Version="3.0.1" />
-    <PackageReference Include="Ubiq.Http" Version="3.0.1" />
+    <PackageReference Include="Ubiq.Definitions.Market" Version="4.0.1" />
+    <PackageReference Include="Ubiq.Http" Version="4.0.1" />
   </ItemGroup>
 
 </Project>
