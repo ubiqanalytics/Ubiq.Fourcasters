@@ -1,23 +1,32 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>disable</Nullable>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Authors>Ubiq Analytics</Authors>
-    <PackageProjectUrl>https://github.com/ubiqanalytics/Ubiq.Fourcasters</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/ubiqanalytics/Ubiq.Fourcasters</RepositoryUrl>
-    <Title>Ubiq.4castersAPI</Title>
-    <PackageId>Ubiq.4castersAPI</PackageId>
-    <Product>Ubiq.4castersAPI</Product>
-    <Description>A .NET wrapper library for the 4casters.io exchange API</Description>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>disable</Nullable>
+		<Authors>Ubiq Analytics</Authors>
+		<PackageProjectUrl>https://github.com/ubiqanalytics/Ubiq.Fourcasters</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/ubiqanalytics/Ubiq.Fourcasters</RepositoryUrl>
+		<Title>Ubiq.4castersAPI</Title>
+		<PackageId>Ubiq.4castersAPI</PackageId>
+		<Product>Ubiq.4castersAPI</Product>
+		<Description>A .NET wrapper library for the 4casters.io exchange API</Description>
 
-  <ItemGroup>
-    <PackageReference Include="SocketIOClient" Version="3.1.2" />
-    <PackageReference Include="Ubiq.Definitions.Market" Version="4.0.1" />
-    <PackageReference Include="Ubiq.Http" Version="4.0.4" />
-  </ItemGroup>
+		<DebugType>embedded</DebugType>
+		<IncludeSymbols>true</IncludeSymbols>
+		<EmitEmbeddedDebugInformation>true</EmitEmbeddedDebugInformation>
+		<EmbedAllSources>true</EmbedAllSources>
+		<PublishRepositoryUrl>false</PublishRepositoryUrl>
+		<EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+		<IncludeBuildOutput>true</IncludeBuildOutput>
+		<IsPackable>true</IsPackable>
+		<PackBuildOutput>true</PackBuildOutput>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="SocketIOClient" Version="3.1.2" />
+		<PackageReference Include="Ubiq.Definitions.Market" Version="4.0.18" />
+		<PackageReference Include="Ubiq.Http" Version="4.0.6" />
+	</ItemGroup>
 
 </Project>

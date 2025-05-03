@@ -13,29 +13,32 @@ jobs:
 
     env:
       SOLUTION: 'Ubiq.Fourcasters.sln'
-      VERSION_PREFIX: '4.0.4'
- 
+      VERSION_PREFIX: '4.0.5'
+    
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Setup NuGet
-      uses: NuGet/setup-nuget@v1.0.5
+      uses: NuGet/setup-nuget@v2
       
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3.0.3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
 
     - name: Restore dependencies
       run:  dotnet restore $SOLUTION
+      
+    - name: Build Ubiq.FourcastersAPI
+      run: dotnet build Ubiq.FourcastersAPI/Ubiq.FourcastersAPI.csproj --configuration Release -p:VersionPrefix=${{ env.VERSION_PREFIX }}
 
-    - name: Build
-      run: dotnet build $SOLUTION --configuration Release --no-restore /p:VersionPrefix=${{ env.VERSION_PREFIX }}
-
+    - name: Pack Ubiq.FourcastersAPI
+      run: dotnet pack Ubiq.FourcastersAPI/Ubiq.FourcastersAPI.csproj --configuration Release --no-build -p:DebugType=embedded -p:EmitEmbeddedDebugInformation=true -p:PackBuildOutput=true -p:IncludeBuildOutput=true -p:VersionPrefix=${{ env.VERSION_PREFIX }}
+      
     - name: Run tests
-      run: dotnet test /p:Configuration=Release --no-restore --no-build --verbosity normal
+      run: dotnet test -p:Configuration=Release --no-restore --no-build --verbosity normal
 
     - name: publish package Fourcasters
       run: dotnet nuget push "Ubiq.FourcastersAPI/bin/Release/Ubiq.4castersAPI.${{ env.VERSION_PREFIX }}.nupkg" --api-key ${{secrets.NUGET_API_KEY}} --source "https://api.nuget.org/v3/index.json"
