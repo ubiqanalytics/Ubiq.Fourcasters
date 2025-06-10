@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Ubiq.Extensions.Newtonsoft" Version="4.0.5" />
-    <PackageReference Include="Ubiq.Http" Version="4.0.6" />
+    <PackageReference Include="Ubiq.Extensions.Newtonsoft" Version="4.0.6" />
+    <PackageReference Include="Ubiq.Http" Version="4.0.7" />
   </ItemGroup>
 
   <ItemGroup>
