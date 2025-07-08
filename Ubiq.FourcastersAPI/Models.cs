@@ -101,6 +101,7 @@ namespace Ubiq.FourcastersAPI
     public class Game
     {
         public bool isFutures { get; set; }
+        public bool isSpecials { get; set; }
         public string eventName { get; set; }
         public string periodName { get; set; }
         public string tournamentName { get; set; }
@@ -797,14 +798,14 @@ namespace Ubiq.FourcastersAPI
 
     public class CancelData
     {
-        public CancelledOrder cancelledOrder { get; set; }
-    }
-
-    public class CancelledOrder
-    {
-        public string sideString { get; set; }
-        public decimal? odds { get; set; }
-        public decimal? volume { get; set; }
+        public bool success { get; set; }
+        public string sessionID { get; set; }
+        public string description { get; set; }
+        public int odds { get; set; }
+        public int filled { get; set; }
+        public int offered { get; set; }
+        public int remaining { get; set; }
+        public string gameID { get; set; }
     }
 
     public class CancelMultipleRequest : AuthenticatedRequest
@@ -820,7 +821,13 @@ namespace Ubiq.FourcastersAPI
     public class CancelledMultipleData
     {
         public bool success { get; set; }
+        public string reason { get; set; }
         public string sessionID { get; set; }
+        public string description { get; set; }
+        public int odds { get; set; }
+        public int filled { get; set; }
+        public int offered { get; set; }
+        public int remaining { get; set; }
         public string gameID { get; set; }
     }
 
@@ -848,10 +855,13 @@ namespace Ubiq.FourcastersAPI
     {
         public bool success { get; set; }
         public string sessionID { get; set; }
+        public string description { get; set; }
         public int odds { get; set; }
+        public int filled { get; set; }
+        public int offered { get; set; }
+        public int remaining { get; set; }
         public string gameID { get; set; }
     }
-
 
     //public class EditOrderRequest : AuthenticatedRequest
     //{

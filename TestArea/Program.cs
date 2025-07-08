@@ -7,8 +7,8 @@ using Ubiq.Http;
 HttpClient httpClient = HttpUtil.CreateHttpClient(false, false, false);
 var httpClientHelper = new HttpClientHelper(NullLogger<HttpClientHelper>.Instance, new JsonSerializerSettings().Configure());
 
-string username = "";
-string password = "";
+string username = "supernovatest";
+string password = "RainLanePain7";
 
 var fourcasters = new FourcastersAPI(NullLogger<FourcastersAPI>.Instance, httpClientHelper, httpClient, new Uri("https://api.4casters.io/"), new Uri("wss://socket-api.4casters.io"), username, password, "USD", 1.0m);
 
@@ -28,14 +28,14 @@ void Fourcasters_OrdersUpdated(object sender, OrderUpdateMessage e)
 await fourcasters.Login();
 await fourcasters.InitialiseWebSockets();
 
-var leagues = await fourcasters.GetLeagues();
+LeaguesResponse leagues = await fourcasters.GetLeagues();
 
 CancelAllOrdersResponse cancelAllResponse = await fourcasters.CancelAllOrders();
 
-GamesResponse games = await fourcasters.GetGames("NHL");
+GamesResponse games = await fourcasters.GetGames("MLB");
 Game game = games.data.games.First();
 
-PlaceResponse placeResponse = await fourcasters.Place([new PlaceOrder
+PlaceResponse placeResponse1 = await fourcasters.Place([new PlaceOrder
     {
         gameID = game.id,
         odds = +500m,
@@ -44,7 +44,20 @@ PlaceResponse placeResponse = await fourcasters.Place([new PlaceOrder
         type = "moneyline",
     }
 ]);
+PlaceResponse placeResponse2 = await fourcasters.Place([new PlaceOrder
+    {
+        gameID = game.id,
+        odds = +500m,
+        bet = 10m,
+        side = game.participants.Last().id,
+        type = "moneyline",
+    }
+]);
 
-CancelResponse cancelResponse = await fourcasters.Cancel(placeResponse.data.createdSessions.First().unmatched.OfferId);
+CancelResponse cancel1 = await fourcasters.Cancel(placeResponse1.data.createdSessions.First().unmatched.OfferId);
+CancelResponse cancel2 = await fourcasters.Cancel(placeResponse1.data.createdSessions.First().unmatched.OfferId);
+
+CancelMultipleResponse cancelResponse1 = await fourcasters.CancelMultiple([placeResponse1.data.createdSessions.First().unmatched.OfferId, placeResponse2.data.createdSessions.First().unmatched.OfferId]);
+CancelMultipleResponse cancelResponse2 = await fourcasters.CancelMultiple([placeResponse1.data.createdSessions.First().unmatched.OfferId, placeResponse2.data.createdSessions.First().unmatched.OfferId]);
 
 Console.ReadLine();
