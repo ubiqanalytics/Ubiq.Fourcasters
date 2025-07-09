@@ -801,10 +801,10 @@ namespace Ubiq.FourcastersAPI
         public bool success { get; set; }
         public string sessionID { get; set; }
         public string description { get; set; }
-        public int odds { get; set; }
-        public int filled { get; set; }
-        public int offered { get; set; }
-        public int remaining { get; set; }
+        public decimal? odds { get; set; }
+        public decimal? filled { get; set; }
+        public decimal? offered { get; set; }
+        public decimal? remaining { get; set; }
         public string gameID { get; set; }
     }
 
@@ -824,10 +824,10 @@ namespace Ubiq.FourcastersAPI
         public string reason { get; set; }
         public string sessionID { get; set; }
         public string description { get; set; }
-        public int odds { get; set; }
-        public int filled { get; set; }
-        public int offered { get; set; }
-        public int remaining { get; set; }
+        public decimal? odds { get; set; }
+        public decimal? filled { get; set; }
+        public decimal? offered { get; set; }
+        public decimal? remaining { get; set; }
         public string gameID { get; set; }
     }
 
@@ -856,10 +856,10 @@ namespace Ubiq.FourcastersAPI
         public bool success { get; set; }
         public string sessionID { get; set; }
         public string description { get; set; }
-        public int odds { get; set; }
-        public int filled { get; set; }
-        public int offered { get; set; }
-        public int remaining { get; set; }
+        public decimal? odds { get; set; }
+        public decimal? filled { get; set; }
+        public decimal? offered { get; set; }
+        public decimal? remaining { get; set; }
         public string gameID { get; set; }
     }
 
