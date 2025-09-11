@@ -383,8 +383,19 @@ namespace Ubiq.FourcastersAPI
                 token = m_Session,
             };
 
-            CancelAllOrdersResponse response = await m_HttpClientHelper.PostAsync<CancelAllOrdersResponse, CancelAllOrdersRequest>(m_HttpClient, url, request, additionalHeaders: _CreateAuthHeader(), requestName: $"CancelAllOrders", cancellation: cancellation).ConfigureAwait(false);
-            return response;
+            TimeSpan timeout = m_HttpClient.Timeout;
+
+            try
+            {
+                m_HttpClient.Timeout = TimeSpan.FromSeconds(60);
+
+                CancelAllOrdersResponse response = await m_HttpClientHelper.PostAsync<CancelAllOrdersResponse, CancelAllOrdersRequest>(m_HttpClient, url, request, additionalHeaders: _CreateAuthHeader(), requestName: $"CancelAllOrders", cancellation: cancellation).ConfigureAwait(false);
+                return response;
+            }
+            finally
+            {
+                m_HttpClient.Timeout = timeout;
+            }
         }
 
         public async Task<CancelResponse> Cancel(string sessionId, CancellationToken cancellation = default)
