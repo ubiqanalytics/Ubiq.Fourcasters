@@ -14,6 +14,7 @@ namespace Ubiq.FourcastersAPI
         private readonly ILogger<FourcastersAPI> m_Logger;
         private readonly IHttpClientHelper m_HttpClientHelper;
         private readonly HttpClient m_HttpClient;
+        private readonly HttpClient m_HttpClientLongTimeout;
         private readonly Uri m_SocketUri;
         private readonly string m_BaseUrl;
         private readonly string m_Username;
@@ -35,11 +36,12 @@ namespace Ubiq.FourcastersAPI
         public event EventHandler<GameUpdateMessage> GameUpdated;
         public event EventHandler<OrderUpdateMessage> OrderUpdated;
 
-        public FourcastersAPI(ILogger<FourcastersAPI> logger, IHttpClientHelper httpClientExtensions, HttpClient httpClient, Uri baseUri, Uri socketUri, string username, string password, string currency = "USD", decimal commissionRate = 1.0m)
+        public FourcastersAPI(ILogger<FourcastersAPI> logger, IHttpClientHelper httpClientExtensions, HttpClient httpClient, HttpClient httpClientLongTimeout, Uri baseUri, Uri socketUri, string username, string password, string currency = "USD", decimal commissionRate = 1.0m)
         {
             m_Logger = logger;
             m_HttpClientHelper = httpClientExtensions;
             m_HttpClient = httpClient;
+            m_HttpClientLongTimeout = httpClientLongTimeout;
             m_SocketUri = socketUri;
             m_BaseUrl = baseUri.ToString();
             m_Username = username;
@@ -254,7 +256,7 @@ namespace Ubiq.FourcastersAPI
                 url += $"&sport={sport}";
             }
 
-            GamesResponse response = await m_HttpClientHelper.GetAsync<GamesResponse>(m_HttpClient, url, additionalHeaders: _CreateAuthHeader(), requestName: $"Games_{league}", cancellation: cancellation).ConfigureAwait(false);
+            GamesResponse response = await m_HttpClientHelper.GetAsync<GamesResponse>(m_HttpClientLongTimeout, url, additionalHeaders: _CreateAuthHeader(), requestName: $"Games_{league}", cancellation: cancellation).ConfigureAwait(false);
 
             if (response?.data?.games?.Length > 0)
             {
@@ -288,7 +290,7 @@ namespace Ubiq.FourcastersAPI
         {
             string url = $"{m_BaseUrl}user/getMatchedBets";
 
-            MatchedBetsResponse response = await m_HttpClientHelper.GetAsync<MatchedBetsResponse>(m_HttpClient, url, additionalHeaders: _CreateAuthHeader(), requestName: $"MatchedBets", cancellation: cancellation).ConfigureAwait(false);
+            MatchedBetsResponse response = await m_HttpClientHelper.GetAsync<MatchedBetsResponse>(m_HttpClientLongTimeout, url, additionalHeaders: _CreateAuthHeader(), requestName: $"MatchedBets", cancellation: cancellation).ConfigureAwait(false);
 
             if (response?.data?.matchedBets?.Length > 0)
             {
@@ -302,7 +304,7 @@ namespace Ubiq.FourcastersAPI
         {
             string url = $"{m_BaseUrl}user/getUnmatched";
 
-            UnmatchedBetsResponse response = await m_HttpClientHelper.GetAsync<UnmatchedBetsResponse>(m_HttpClient, url, additionalHeaders: _CreateAuthHeader(), requestName: $"UnmatchedBets", cancellation: cancellation).ConfigureAwait(false);
+            UnmatchedBetsResponse response = await m_HttpClientHelper.GetAsync<UnmatchedBetsResponse>(m_HttpClientLongTimeout, url, additionalHeaders: _CreateAuthHeader(), requestName: $"UnmatchedBets", cancellation: cancellation).ConfigureAwait(false);
 
             if (response?.data?.unmatched?.Length > 0)
             {
@@ -316,7 +318,7 @@ namespace Ubiq.FourcastersAPI
         {
             string url = $"{m_BaseUrl}user/getGradedWagers?startDate={startDate:MM-dd-yyyy}&endDate={endDate:MM-dd-yyyy}";
 
-            GradedWagersResponse response = await m_HttpClientHelper.GetAsync<GradedWagersResponse>(m_HttpClient, url, additionalHeaders: _CreateAuthHeader(), requestName: $"GradedWagers_{startDate:MM-dd-yyyy}_{endDate:MM-dd-yyyy}", cancellation: cancellation).ConfigureAwait(false);
+            GradedWagersResponse response = await m_HttpClientHelper.GetAsync<GradedWagersResponse>(m_HttpClientLongTimeout, url, additionalHeaders: _CreateAuthHeader(), requestName: $"GradedWagers_{startDate:MM-dd-yyyy}_{endDate:MM-dd-yyyy}", cancellation: cancellation).ConfigureAwait(false);
 
             if (response?.data?.graded?.Length > 0)
             {
@@ -383,19 +385,8 @@ namespace Ubiq.FourcastersAPI
                 token = m_Session,
             };
 
-            TimeSpan timeout = m_HttpClient.Timeout;
-
-            try
-            {
-                m_HttpClient.Timeout = TimeSpan.FromSeconds(60);
-
-                CancelAllOrdersResponse response = await m_HttpClientHelper.PostAsync<CancelAllOrdersResponse, CancelAllOrdersRequest>(m_HttpClient, url, request, additionalHeaders: _CreateAuthHeader(), requestName: $"CancelAllOrders", cancellation: cancellation).ConfigureAwait(false);
-                return response;
-            }
-            finally
-            {
-                m_HttpClient.Timeout = timeout;
-            }
+            CancelAllOrdersResponse response = await m_HttpClientHelper.PostAsync<CancelAllOrdersResponse, CancelAllOrdersRequest>(m_HttpClientLongTimeout, url, request, additionalHeaders: _CreateAuthHeader(), requestName: $"CancelAllOrders", cancellation: cancellation).ConfigureAwait(false);
+            return response;
         }
 
         public async Task<CancelResponse> Cancel(string sessionId, CancellationToken cancellation = default)
