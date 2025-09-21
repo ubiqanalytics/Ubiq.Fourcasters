@@ -49,10 +49,12 @@ namespace Ubiq.FourcastersAPI
             m_Currency = currency;
             m_CommissionRate = commissionRate;
 
-            httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue();
-            httpClient.DefaultRequestHeaders.CacheControl.MaxAge = TimeSpan.Zero;
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36");
+            _SetupHttp(httpClient);
+
+            if (object.ReferenceEquals(httpClient, httpClientLongTimeout) == false)
+            {
+                _SetupHttp(httpClientLongTimeout);
+            }
         }
 
         public bool UsingWebSockets { get; private set; } = false;
@@ -79,6 +81,14 @@ namespace Ubiq.FourcastersAPI
             {
                 return m_CommissionRate;
             }
+        }
+
+        private static void _SetupHttp(HttpClient httpClient)
+        {
+            httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue();
+            httpClient.DefaultRequestHeaders.CacheControl.MaxAge = TimeSpan.Zero;
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36");
         }
 
         public async Task<LoginResponse> Login(CancellationToken cancellation = default)
