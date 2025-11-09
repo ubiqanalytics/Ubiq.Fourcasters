@@ -186,6 +186,11 @@ namespace Ubiq.FourcastersAPI
         public decimal? mainHomeSpread { get; set; }
         public decimal? mainAwaySpread { get; set; }
         public decimal? mainTotal { get; set; }
+        public bool isSpecials { get; set; }
+        public bool userCreated { get; set; }
+        public int matchedVolume { get; set; }
+        public string periodName { get; set; }
+        public string messageType { get; set; }
 
         public override string ToString()
         {
