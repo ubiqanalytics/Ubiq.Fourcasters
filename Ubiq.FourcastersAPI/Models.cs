@@ -70,6 +70,11 @@ namespace Ubiq.FourcastersAPI
         public string shortName { get; set; }
         public string league { get; set; }
         public string sport { get; set; }
+
+        public override string ToString()
+        {
+            return $"{participantID}, {longName}";
+        }
     }
 
     public class LeaguesResponse
@@ -140,6 +145,11 @@ namespace Ubiq.FourcastersAPI
                 orders.ForEach(o => o.SetProperties(priceFormat, currency));
             }
         }
+
+        public override string ToString()
+        {
+            return $"{id}, {eventName}, {league}, {sport}, {periodName}";
+        }
     }
 
     public class GameParticipant
@@ -152,6 +162,11 @@ namespace Ubiq.FourcastersAPI
         public string rotationNumber { get; set; }
         public string futuresSide { get; set; }
         public Int32? score { get; set; }
+
+        public override string ToString()
+        {
+            return $"{id}, {longName}";
+        }
     }
 
     public class GameUpdateMessage
@@ -171,6 +186,11 @@ namespace Ubiq.FourcastersAPI
         public decimal? mainHomeSpread { get; set; }
         public decimal? mainAwaySpread { get; set; }
         public decimal? mainTotal { get; set; }
+
+        public override string ToString()
+        {
+            return $"{id}, {eventName}, {league}, {sport}, live: {live}, ended: {ended}";
+        }
     }
 
     public class OrderBookRequest : AuthenticatedRequest
@@ -217,6 +237,11 @@ namespace Ubiq.FourcastersAPI
         {
             this.Price = new Price(priceFormat, odds);
             this.Amount = new Amount(bet, currency);
+        }
+
+        public override string ToString()
+        {
+            return $"{id}, {type}, {gameID}, {participantID}";
         }
     }
 
@@ -303,6 +328,11 @@ namespace Ubiq.FourcastersAPI
         public bool live { get; set; }
         public Sideorder[] sideOrders { get; set; }
         public string participantID { get; set; }
+
+        public override string ToString()
+        {
+            return $"{gameID}, {sport}, {type}, {participantID}, live: {live}";
+        }
     }
 
     public class Sideorder
@@ -453,6 +483,11 @@ namespace Ubiq.FourcastersAPI
                 decimal pnl = decimal.Parse(result);
                 this.Result = new Amount(pnl, currency);
             }
+        }
+
+        public override string ToString()
+        {
+            return $"{id}, {game?.id}, {participantID}, {outcome}";
         }
     }
 
