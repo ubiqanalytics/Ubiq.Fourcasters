@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Ubiq.Extensions.Newtonsoft" Version="4.0.19" />
-    <PackageReference Include="Ubiq.Http" Version="4.0.17" />
+    <PackageReference Include="Ubiq.Http" Version="4.0.18" />
   </ItemGroup>
 
   <ItemGroup>
