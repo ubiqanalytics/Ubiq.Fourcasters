@@ -81,6 +81,22 @@ namespace Ubiq.FourcastersAPI
             }
         }
 
+        public bool UserSocketConnected
+        {
+            get
+            {
+                return m_UserSocket?.Connected == true;
+            }
+        }
+
+        public bool PublicSocketConnected
+        {
+            get
+            {
+                return m_PublicSocket?.Connected == true;
+            }
+        }
+
         private static void _SetupHttp(HttpClient httpClient)
         {
             httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue();
@@ -227,7 +243,7 @@ namespace Ubiq.FourcastersAPI
 
         private void _UserSocket_OnDisconnected(object sender, string e)
         {
-            m_Logger.LogDebug($"WebSocket disconnected because {e}");
+            m_Logger.LogDebug($"User WebSocket disconnected because {e}");
             UserWebSocketDisconnected?.Invoke(this, EventArgs.Empty);
         }
 
@@ -248,6 +264,7 @@ namespace Ubiq.FourcastersAPI
 
         private void _PublicSocket_OnDisconnected(object sender, string e)
         {
+            m_Logger.LogDebug($"Public WebSocket disconnected because {e}");
             PublicWebSocketDisconnected?.Invoke(this, EventArgs.Empty);
         }
 
