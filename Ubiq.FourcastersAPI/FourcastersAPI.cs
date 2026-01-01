@@ -57,8 +57,6 @@ namespace Ubiq.FourcastersAPI
             }
         }
 
-        public bool UsingWebSockets { get; private set; } = false;
-
         public string Currency
         {
             get
@@ -146,8 +144,6 @@ namespace Ubiq.FourcastersAPI
         public async Task InitialiseWebSockets()
         {
             _KillSockets();
-
-            this.UsingWebSockets = true;
 
             var options = new SocketIOOptions()
             {
