@@ -9,7 +9,7 @@ using Ubiq.Extensions;
 
 namespace Ubiq.FourcastersAPI
 {
-    public class FourcastersAPI : IDisposable
+    public class FourcastersAPI : IAsyncDisposable
     {
         private readonly ILogger<FourcastersAPI> m_Logger;
         private readonly IHttpClientHelper m_HttpClientHelper;
@@ -110,7 +110,7 @@ namespace Ubiq.FourcastersAPI
             return loginResponse;
         }
 
-        private void _KillSockets()
+        private async Task _KillSockets()
         {
             try
             {
@@ -121,31 +121,51 @@ namespace Ubiq.FourcastersAPI
                     m_UserSocket.OnDisconnected -= _UserSocket_OnDisconnected;
                     m_UserSocket.OnError -= _UserSocket_OnError;
 
-                    m_UserSocket.Dispose();
-                    m_UserSocket = null;
-                }
-                if (m_PublicSocket is object)
-                {
-                    m_PublicSocket.OnConnected -= _UserSocket_OnConnected;
-                    m_PublicSocket.OnReconnected -= _UserSocket_OnReconnected;
-                    m_PublicSocket.OnDisconnected -= _UserSocket_OnDisconnected;
-                    m_PublicSocket.OnError -= _UserSocket_OnError;
+                    if (m_UserSocket.Connected == true)
+                    {
+                        await m_UserSocket.DisconnectAsync();
+                    }
 
-                    m_PublicSocket.Dispose();
-                    m_PublicSocket = null;
+                    m_UserSocket.Dispose();
                 }
             }
             catch (Exception ex)
             {
-                m_Logger.LogError(ex, "Error cleaning up websockets");
+                m_Logger.LogError(ex, "Error cleaning up user websocket");
             }
+
+            m_UserSocket = null;
+
+            try
+            {
+                if (m_PublicSocket is object)
+                {
+                    m_PublicSocket.OnConnected -= _PublicSocket_OnConnected;
+                    m_PublicSocket.OnReconnected -= _PublicSocket_OnReconnected;
+                    m_PublicSocket.OnDisconnected -= _PublicSocket_OnDisconnected;
+                    m_PublicSocket.OnError -= _PublicSocket_OnError;
+
+                    if (m_PublicSocket.Connected == true)
+                    {
+                        await m_PublicSocket.DisconnectAsync();
+                    }
+
+                    m_PublicSocket.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                m_Logger.LogError(ex, "Error cleaning up public websocket");
+            }
+
+            m_PublicSocket = null;
         }
 
         public async Task InitialiseWebSockets()
         {
-            _KillSockets();
+            await _KillSockets();
 
-            var options = new SocketIOOptions()
+            var options = new SocketIOOptions
             {
                 Reconnection = true,
                 Transport = TransportProtocol.WebSocket,
@@ -163,9 +183,7 @@ namespace Ubiq.FourcastersAPI
             m_UserSocket.OnDisconnected += _UserSocket_OnDisconnected;
             m_UserSocket.OnError += _UserSocket_OnError;
 
-            await m_UserSocket.ConnectAsync();
-
-            var publicOptions = new SocketIOOptions()
+            var publicOptions = new SocketIOOptions
             {
                 Reconnection = true,
                 Transport = TransportProtocol.WebSocket,
@@ -183,12 +201,13 @@ namespace Ubiq.FourcastersAPI
             m_PublicSocket.OnDisconnected += _PublicSocket_OnDisconnected;
             m_PublicSocket.OnError += _PublicSocket_OnError;
 
+            await m_UserSocket.ConnectAsync();
             await m_PublicSocket.ConnectAsync();
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            _KillSockets();
+            await _KillSockets();
         }
 
         private void _UserSocket_OnError(object sender, string e)
